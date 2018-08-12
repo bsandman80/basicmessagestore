@@ -18,7 +18,7 @@ namespace BasicMessageStore.Controllers
             existingMessage.Header = message.Header;
             existingMessage.Body = message.Body;
             
-            await Repository.UpdateAsync(message);
+            await Repository.UpdateAsync(existingMessage);
             return Ok();
         }
         
