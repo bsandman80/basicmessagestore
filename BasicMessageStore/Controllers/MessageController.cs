@@ -10,27 +10,29 @@ using Microsoft.AspNetCore.Mvc;
 namespace BasicMessageStore.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
     public class MessageController : RepositoryController<Message>
     {
         public MessageController(IMessageRepository messageRepository) : base(messageRepository)
         {
         }
 
-        public override async Task<IActionResult> UpdateAsync(int id, Message model)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateAsync(int id, string header, string body)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             var message = await Repository.GetByIdAsync(id);
-            // Only update the body and header
-            message.Body = model.Body;
-            message.Header = model.Header;
+            message.Header = header;
+            message.Body = body;
             
             await Repository.UpdateAsync(message);
             return Ok();
+        }
+        
+        [HttpPost]
+        public  async Task<IActionResult> AddAsync(string header, string body)
+        {
+            var message = new Message {Header = header, Body = body};
+            message = await Repository.AddAsync(message);
+            return CreatedAtAction(nameof(GetAsync), new {id = message.Id}, message);
         }
     }
 }

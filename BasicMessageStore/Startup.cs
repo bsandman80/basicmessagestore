@@ -1,12 +1,15 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using BasicMessageStore.Configuration;
 using BasicMessageStore.Models;
 using BasicMessageStore.Models.Messages;
-using BasicMessageStore.Models.Security;
+using BasicMessageStore.Models.Users;
 using BasicMessageStore.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,13 +58,25 @@ namespace BasicMessageStore
         
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
+                options.Filters.Add(typeof(ClientProviderFilterAsync));
+                options.Filters.Add(typeof(ExceptionFilter));
+            });
 
             ConfigurationProvider = new AppSettingConfigurationProvider(Configuration);
             services.AddDbContext<MessageStoreContext>(options => options.UseInMemoryDatabase(ConfigurationProvider.ConnectionString));
             services.AddSingleton(provider => ConfigurationProvider);
+            services.AddTransient<ClientProviderFilterAsync>();
+            services.AddTransient<ExceptionFilter>();
             services.AddScoped<IMessageRepository, MessageRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            // Client is request specific
+            services.AddScoped<IClientProvider, ClientProvider>();
             services.AddSingleton<ITokenProvider, JWTTokenProvider>();
 
             ConfigureAuthentication(services);

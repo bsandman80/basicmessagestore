@@ -1,5 +1,4 @@
-﻿using BasicMessageStore.Models.Security;
-using BasicMessageStore.Models.User;
+﻿using BasicMessageStore.Models.Users;
 
 namespace BasicMessageStore.Security
 {

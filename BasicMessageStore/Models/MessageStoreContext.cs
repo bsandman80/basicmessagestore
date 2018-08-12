@@ -2,19 +2,25 @@
 using System.Threading;
 using System.Threading.Tasks;
 using BasicMessageStore.Models.Messages;
-using BasicMessageStore.Models.Security;
+using BasicMessageStore.Models.Users;
+using BasicMessageStore.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace BasicMessageStore.Models
 {
     public class MessageStoreContext : DbContext
     {
-        public MessageStoreContext(DbContextOptions<MessageStoreContext> options)
+        private readonly IClientProvider _clientProvider;
+
+        public MessageStoreContext(DbContextOptions<MessageStoreContext> options, IClientProvider clientProvider)
             : base(options)
-        { }
+        {
+            _clientProvider = clientProvider;
+
+        }
 
         public DbSet<Message> Messages { get; set; }
-        public DbSet<User.User> Users { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public override int SaveChanges()
         {
@@ -30,19 +36,22 @@ namespace BasicMessageStore.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User.User>()
+            modelBuilder.Entity<User>()
                 .HasKey(c => c.Id);
             modelBuilder.Entity<Message>()
                 .HasKey(c => c.Id);
         }
 
+        /// <summary>
+        /// Fill in all auditable fields for Models with interface Auditable
+        /// </summary>
         private void Audit()
         {
             foreach (var auditableModel in ChangeTracker.Entries<IAuditable>())
             {
                 if (auditableModel.State == EntityState.Added)
                 {
-                    auditableModel.Reference(nameof(IAuditable.CreatedBy)).CurrentValue = null;
+                    auditableModel.Reference(nameof(IAuditable.CreatedBy)).CurrentValue = _clientProvider.CurrentUser;
                     auditableModel.Property(nameof(IAuditable.Created)).CurrentValue = DateTime.Now;    
                 }
                 else if (auditableModel.State == EntityState.Modified)

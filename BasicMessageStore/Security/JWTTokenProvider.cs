@@ -3,8 +3,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using BasicMessageStore.Configuration;
-using BasicMessageStore.Models.Security;
-using BasicMessageStore.Models.User;
+using BasicMessageStore.Exceptions;
+using BasicMessageStore.Models.Users;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BasicMessageStore.Security
@@ -22,8 +22,17 @@ namespace BasicMessageStore.Security
             _configurationProvider = configurationProvider;
         }
 
+        /// <summary>
+        /// Generates a JWT access token with the claims of being a certain user
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+        /// <exception cref="MessageStoreException"></exception>
         public string GenerateAccessToken(User user)
         {
+            if (String.IsNullOrWhiteSpace(user.Username))
+                throw new MessageStoreException(ErrorCodes.Required, "Username is required");
+            
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configurationProvider.TokenSecret));
             var claims = new[]
             {

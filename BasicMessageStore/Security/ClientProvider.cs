@@ -1,7 +1,9 @@
-﻿namespace BasicMessageStore.Security
+﻿using BasicMessageStore.Models.Users;
+
+namespace BasicMessageStore.Security
 {
-    public class CurrentClientProvider : ICurrentClientProvider
+    public class ClientProvider : IClientProvider
     {
-        public string CurrentUser { get; set; }
+        public User CurrentUser { get; set; }
     }
 }

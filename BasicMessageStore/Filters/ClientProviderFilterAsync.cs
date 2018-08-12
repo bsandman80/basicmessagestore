@@ -36,15 +36,16 @@ namespace BasicMessageStore.Security
 
             var username = userClaim?.Value;
 
-            if (username == null)
-                return;
+            if (username != null)
+            {
+                var user = await _userRepository.GetByUsername(username);
 
-            var user = await _userRepository.GetByUsername(username);
-
-            if (user == null)
-                return;
-
-            _clientProvider.CurrentUser = user;
+                if (user != null)
+                {
+                    _clientProvider.CurrentUser = user;    
+                }
+            }
+            await next();
         }
     }
 }

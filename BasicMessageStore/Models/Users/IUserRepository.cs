@@ -1,15 +1,15 @@
 ﻿using System.Threading.Tasks;
 
-namespace BasicMessageStore.Models.Security
+namespace BasicMessageStore.Models.Users
 {
-    public interface IUserRepository : IRepository<User.User>
+    public interface IUserRepository : IRepository<User>
     {
         /// <summary>
-        /// Tries to login a user using the provided username and password
+        /// Checks credentials for a user
         /// </summary>
         /// <returns>true is successful</returns>
         Task<bool> Login(string username, string password);
 
-        Task<User.User> GetByUsername(string username);
+        Task<User> GetByUsername(string username);
     }
 }

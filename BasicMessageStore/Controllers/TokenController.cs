@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
-using BasicMessageStore.Models.Security;
+using BasicMessageStore.Models.Users;
 using BasicMessageStore.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BasicMessageStore.Controllers
@@ -21,13 +22,9 @@ namespace BasicMessageStore.Controllers
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> CreateAsync([FromForm]string username, [FromForm]string password)
+        [AllowAnonymous]
+        public async Task<IActionResult> CreateAsync(string username, string password)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             if (!await _userRepository.Login(username, password))
                 return BadRequest("Invalid username or password");
 

@@ -9,6 +9,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BasicMessageStore.Controllers
 {
+    /// <summary>
+    /// Base controller for repository based controllers, implements the basic operations
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    [Authorize]
     public abstract class RepositoryController<T> : Controller where T : Model
     {
         protected readonly IRepository<T> Repository;
@@ -29,30 +34,6 @@ namespace BasicMessageStore.Controllers
         public virtual async Task<IActionResult> GetAsync(int id)
         {
             return Ok(await Repository.GetByIdAsync(id));
-        }
-
-        [HttpPost]
-        public virtual async Task<IActionResult> AddAsync([FromForm]T model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-            var created = await Repository.AddAsync(model);
-            return CreatedAtAction("GetAsync", new {id = created.Id}, created);
-        }
-
-        [HttpPut("{id}")]
-        public virtual async Task<IActionResult> UpdateAsync(int id, [FromForm]T model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            model.Id = id;
-            await Repository.UpdateAsync(model);
-            return Ok();
         }
 
         [HttpDelete("{id}")]
