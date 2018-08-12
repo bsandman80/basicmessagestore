@@ -3,12 +3,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using BasicMessageStore.Models.Users;
+using BasicMessageStore.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Remotion.Linq.Clauses.ResultOperators;
 
-namespace BasicMessageStore.Security
+namespace BasicMessageStore.Filters
 {
     /// <summary>
     /// Filter to assign current user before anything else is executed

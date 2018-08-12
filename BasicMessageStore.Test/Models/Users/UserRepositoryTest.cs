@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using BasicMessageStore.Exceptions;
-using BasicMessageStore.Models;
 using BasicMessageStore.Models.Users;
 using BasicMessageStore.Security;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using Moq;
 using NUnit.Framework;
 
@@ -34,9 +30,9 @@ namespace BasicMessageStore.Test.Models.Users
     }
     
     [Test]
-    public async Task AddAsync_MissingUsernameThrows()
+    public void AddAsync_MissingUsernameThrows()
     {      
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
       var user = new User {Username = String.Empty, Password = "Password"};
 
@@ -46,9 +42,9 @@ namespace BasicMessageStore.Test.Models.Users
     }
     
     [Test]
-    public async Task AddAsync_MissingPasswordThrows()
+    public void AddAsync_MissingPasswordThrows()
     {      
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
       var user = new User {Username = "Username", Password = ""};
 
@@ -58,10 +54,10 @@ namespace BasicMessageStore.Test.Models.Users
     }
     
     [Test]
-    public async Task AddAsync_UserExistsThrows()
+    public void AddAsync_UserExistsThrows()
     { 
       var user = new User {Username = "ExistingUser", Password = "Password"};
-      var (repo, hasher) = SetupTarget(user);
+      var (repo, _) = SetupTarget(user);
 
       var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.AddAsync(user));
 
@@ -79,13 +75,14 @@ namespace BasicMessageStore.Test.Models.Users
       hasher.Setup(x => x.HashPassword(It.IsAny<User>(), It.IsAny<string>())).Returns(hashedPassword);            
       
       var savedUser = await repo.AddAsync(user);
-      Assert.That(savedUser.Password, Is.EqualTo(hashedPassword));
+      Assert.That(savedUser.HashedPassword, Is.EqualTo(hashedPassword));
+      Assert.IsNull(savedUser.Password);
     }    
     
     [Test]
     public async Task AddAsync_UserIsSavedToDatabase()
     {       
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
       var user = new User {Username = "Username", Password = "Password"};                
       
@@ -98,13 +95,13 @@ namespace BasicMessageStore.Test.Models.Users
     }
 
     [Test]
-    public async Task DeleteAsync_DeleteNonExistingUserThrows()
+    public void DeleteAsync_DeleteNonExistingUserThrows()
     {
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
-      const int NonExistingUserId = 15;
+      const int nonExistingUserId = 15;
 
-      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.DeleteAsync(NonExistingUserId));
+      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.DeleteAsync(nonExistingUserId));
 
       Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
     }
@@ -113,7 +110,7 @@ namespace BasicMessageStore.Test.Models.Users
     public async Task DeleteAsync_DeletedUserIsRemovedFromDatabase()
     {
       var user = new User {Id = 1, Username = "Username", Password = "Password"};
-      var (repo, hasher) = SetupTarget(user);
+      var (repo, _) = SetupTarget(user);
                 
       await repo.DeleteAsync(user.Id);
 
@@ -130,34 +127,36 @@ namespace BasicMessageStore.Test.Models.Users
         new User {Username = "user2", Password = "pass2"}
       };
       
-      var (repo, hasher) = SetupTarget(users.ToArray());
+      var (repo, _) = SetupTarget(users.ToArray());
 
       var usersInRepo = await repo.GetAsync();
+      var userList = usersInRepo.ToList();
       
-      Assert.IsTrue(users.All(usersInRepo.Contains));
-      Assert.IsTrue(usersInRepo.All(users.Contains));
+      
+      Assert.IsTrue(users.All(userList.Contains));
+      Assert.IsTrue(userList.All(users.Contains));
     }
 
     [Test]
-    public async Task GetByIdAsync_NonExistingUserThrows()
+    public void GetByIdAsync_NonExistingUserThrows()
     {
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
-      const int NonExistingUserId = 15;
+      const int nonExistingUserId = 15;
 
-      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByIdAsync(NonExistingUserId));
+      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByIdAsync(nonExistingUserId));
 
       Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
     }
 
     [Test]
-    public async Task Login_NonExistingUserThrows()
+    public void Login_NonExistingUserThrows()
     {
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
-      const string NonExistingUsername = "NonExistingUser";
+      const string nonExistingUsername = "NonExistingUser";
 
-      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.Login(NonExistingUsername, "password"));
+      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.Login(nonExistingUsername, "password"));
 
       Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
     }
@@ -166,7 +165,7 @@ namespace BasicMessageStore.Test.Models.Users
     public async Task Login_EmptyPasswordReturnsFalse()
     {
       var user = new User {Id = 1, Username = "Username", Password = "Password"};
-      var (repo, hasher) = SetupTarget(user);
+      var (repo, _) = SetupTarget(user);
 
       var ret = await repo.Login(user.Username, String.Empty);
 
@@ -192,13 +191,13 @@ namespace BasicMessageStore.Test.Models.Users
     }
 
     [Test]
-    public async Task GetByUsername_NonExistingUsernameThrows()
+    public void GetByUsername_NonExistingUsernameThrows()
     {
-      var (repo, hasher) = SetupTarget();
+      var (repo, _) = SetupTarget();
 
-      const string NonExistingUsername = "NonExistingUser";
+      const string nonExistingUsername = "NonExistingUser";
 
-      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByUsername(NonExistingUsername));
+      var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByUsername(nonExistingUsername));
 
       Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
     }
@@ -207,7 +206,7 @@ namespace BasicMessageStore.Test.Models.Users
     public async Task GetByUsername_ReturnsUserWithUsername()
     {
       var user = new User {Id = 1, Username = "Username", Password = "Password"};
-      var (repo, hasher) = SetupTarget(user);
+      var (repo, _) = SetupTarget(user);
 
       var existing = await repo.GetByUsername(user.Username);
       
@@ -219,7 +218,7 @@ namespace BasicMessageStore.Test.Models.Users
     public async Task UsernameExists_ReturnsTrueForExistingUser()
     {
       var user = new User {Id = 1, Username = "Username", Password = "Password"};
-      var (repo, hasher) = SetupTarget(user);
+      var (repo, _) = SetupTarget(user);
 
       var exists = await repo.UsernameExists(user.Username);
       
@@ -229,9 +228,9 @@ namespace BasicMessageStore.Test.Models.Users
     [Test]
     public async Task UsernameExists_ReturnsFalseForNonExistingUser()
     {
-      var (repo, hasher) = SetupTarget();
-      const string NonExistingUsername = "NonExistingUser";
-      var exists = await repo.UsernameExists(NonExistingUsername);
+      var (repo, _) = SetupTarget();
+      const string nonExistingUsername = "NonExistingUser";
+      var exists = await repo.UsernameExists(nonExistingUsername);
       
       Assert.IsFalse(exists);
     }

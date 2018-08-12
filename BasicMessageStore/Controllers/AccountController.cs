@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using BasicMessageStore.Models;
+﻿using System.Threading.Tasks;
 using BasicMessageStore.Models.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +14,9 @@ namespace BasicMessageStore.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public  async Task<IActionResult> AddAsync(string username, string password)
+        public  async Task<IActionResult> AddAsync([FromBody]User user)
         {
-            var user = new User {Username = username, Password = password};
+            user = new User {Username = user.Username, Password = user.Password};
             user = await Repository.AddAsync(user);
             return CreatedAtAction(nameof(GetAsync), new {id = user.Id}, user);
         }

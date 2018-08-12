@@ -30,7 +30,8 @@ namespace BasicMessageStore.Models.Users
             if (await UsernameExists(model.Username))
                 throw new MessageStoreException(ErrorCodes.Unique, "Username already exists");
             
-            model.Password = _passwordHasher.HashPassword(model, model.Password);            
+            model.HashedPassword = _passwordHasher.HashPassword(model, model.Password);
+            model.Password = null;
             Context.Users.Add(model);
             await Context.SaveChangesAsync();
             return model;
@@ -69,7 +70,7 @@ namespace BasicMessageStore.Models.Users
             var user = await GetByUsername(username);
             if (user == null || String.IsNullOrWhiteSpace(password))
                 return false;
-            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.HashedPassword, password);
             return result == PasswordVerificationResult.Success;
         }
 

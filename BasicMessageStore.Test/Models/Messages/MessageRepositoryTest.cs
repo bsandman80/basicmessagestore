@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BasicMessageStore.Exceptions;
-using BasicMessageStore.Models;
 using BasicMessageStore.Models.Messages;
 using BasicMessageStore.Models.Users;
 using BasicMessageStore.Security;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using NUnit.Framework;
 
@@ -29,9 +25,9 @@ namespace BasicMessageStore.Test.Models.Messages
         }
 
         [Test]
-        public async Task AddAsync_MissingHeaderThrows()
+        public void AddAsync_MissingHeaderThrows()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
             var message = new Message {Header = String.Empty, Body = "I am a body"};
             
@@ -42,9 +38,9 @@ namespace BasicMessageStore.Test.Models.Messages
         }
         
         [Test]
-        public async Task AddAsync_MissingBodyThrows()
+        public void AddAsync_MissingBodyThrows()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
             var message = new Message {Header = "I am a header", Body = String.Empty};
             
@@ -57,7 +53,7 @@ namespace BasicMessageStore.Test.Models.Messages
         [Test]
         public async Task AddAsync_MessageIsPersisted()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
             var message = new Message {Header = "I am a header", Body = "I am a body"};
             
@@ -71,19 +67,19 @@ namespace BasicMessageStore.Test.Models.Messages
         }
 
         [Test]
-        public async Task DeleteAsync_DeleteNonExistingMessageThrows()
+        public void DeleteAsync_DeleteNonExistingMessageThrows()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
-            const int NonExistingMessageId = 15;
+            const int nonExistingMessageId = 15;
 
-            var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.DeleteAsync(NonExistingMessageId));
+            var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.DeleteAsync(nonExistingMessageId));
 
             Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
         }
 
         [Test]
-        public async Task DeleteAsync_DeletingOtherUsersMessageIsNotAllowed()
+        public void DeleteAsync_DeletingOtherUsersMessageIsNotAllowed()
         {
             var (repo, client) = SetupTarget();
 
@@ -108,7 +104,7 @@ namespace BasicMessageStore.Test.Models.Messages
         public async Task DeleteAsync_DeletedMessageIsPersisted()
         {
             var message = new Message {Header = "I am a header", Body = "I am a body", Id = 1};
-            var (repo, client) = SetupTarget(message);
+            var (repo, _) = SetupTarget(message);
 
             await repo.DeleteAsync(message.Id);
 
@@ -117,10 +113,10 @@ namespace BasicMessageStore.Test.Models.Messages
         }
 
         [Test]
-        public async Task UpdateAsync_MissingHeaderThrows()
+        public void UpdateAsync_MissingHeaderThrows()
         {
             var message = new Message {Header = "I am a header", Body = "I am a body"};
-            var (repo, client) = SetupTarget(message);
+            var (repo, _) = SetupTarget(message);
 
             message.Header = String.Empty;
             
@@ -131,10 +127,10 @@ namespace BasicMessageStore.Test.Models.Messages
         }
         
         [Test]
-        public async Task UpdateAsync_MissingBodyThrows()
+        public void UpdateAsync_MissingBodyThrows()
         {
             var message = new Message {Header = "I am a header", Body = "I am a body" };
-            var (repo, client) = SetupTarget(message);
+            var (repo, _) = SetupTarget(message);
 
             message.Body = String.Empty;
             
@@ -145,12 +141,12 @@ namespace BasicMessageStore.Test.Models.Messages
         }
         
         [Test]
-        public async Task UpdateAsync_NonExistingMessageThrows()
+        public void UpdateAsync_NonExistingMessageThrows()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
-            const int NonExistantId = 15;
-            var message = new Message {Header = "I am a header", Body = "I am a body", Id = NonExistantId };
+            const int nonExistantId = 15;
+            var message = new Message {Header = "I am a header", Body = "I am a body", Id = nonExistantId };
             
             var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.UpdateAsync(message));
 
@@ -159,7 +155,7 @@ namespace BasicMessageStore.Test.Models.Messages
         }
         
         [Test]
-        public async Task UpdateAsync_UpdatingOtherUsersMessageIsNotAllowed()
+        public void UpdateAsync_UpdatingOtherUsersMessageIsNotAllowed()
         {
             var (repo, client) = SetupTarget();
 
@@ -184,7 +180,7 @@ namespace BasicMessageStore.Test.Models.Messages
         public async Task UpdateAsync_UpdatedMessageIsPersisted()
         {            
             var message = new Message {Header = "I am a header", Body = "I am a body", Id = 1 };
-            var (repo, client) = SetupTarget(message);
+            var (repo, _) = SetupTarget(message);
 
             const string newBody = "I am a new body"; 
             
@@ -207,22 +203,23 @@ namespace BasicMessageStore.Test.Models.Messages
                 new Message {Header = "header2", Body = "body2"}
             };
       
-            var (repo, hasher) = SetupTarget(messages.ToArray());
+            var (repo, _) = SetupTarget(messages.ToArray());
 
             var messagesInRepo = await repo.GetAsync();
+            var messageList = messagesInRepo.ToList();
       
-            Assert.IsTrue(messages.All(messagesInRepo.Contains));
-            Assert.IsTrue(messagesInRepo.All(messages.Contains));
+            Assert.IsTrue(messages.All(messageList.Contains));
+            Assert.IsTrue(messageList.All(messages.Contains));
         }
 
         [Test]
-        public async Task GetByIdAsync_NonExistingMessageThrows()
+        public void GetByIdAsync_NonExistingMessageThrows()
         {
-            var (repo, client) = SetupTarget();
+            var (repo, _) = SetupTarget();
 
-            const int NonExistantId = 15;
+            const int nonExistantId = 15;
             
-            var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByIdAsync(NonExistantId));
+            var ex = Assert.ThrowsAsync<MessageStoreException>(async () => await repo.GetByIdAsync(nonExistantId));
 
             Assert.That(ex.ErrorCode, Is.EqualTo(ErrorCodes.ResourceNotFound));
         }

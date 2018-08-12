@@ -23,12 +23,12 @@ namespace BasicMessageStore.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [AllowAnonymous]
-        public async Task<IActionResult> CreateAsync(string username, string password)
+        public async Task<IActionResult> CreateAsync([FromBody]User user)
         {
-            if (!await _userRepository.Login(username, password))
+            if (!await _userRepository.Login(user.Username, user.Password))
                 return BadRequest("Invalid username or password");
 
-            var user = await _userRepository.GetByUsername(username);
+            user = await _userRepository.GetByUsername(user.Username);
 
             return Ok(new
             {

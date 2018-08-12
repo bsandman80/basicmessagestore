@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using BasicMessageStore.Exceptions;
-using BasicMessageStore.Models.Users;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Remotion.Linq.Clauses.ResultOperators;
 
-namespace BasicMessageStore.Security
+namespace BasicMessageStore.Filters
 {
     /// <summary>
     /// Filter to catch unhandled exceptions. 

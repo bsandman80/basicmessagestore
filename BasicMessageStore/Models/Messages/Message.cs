@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using BasicMessageStore.Models.Users;
 
 namespace BasicMessageStore.Models.Messages

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
 using BasicMessageStore.Configuration;
+using BasicMessageStore.Filters;
 using BasicMessageStore.Models;
 using BasicMessageStore.Models.Messages;
 using BasicMessageStore.Models.Users;
