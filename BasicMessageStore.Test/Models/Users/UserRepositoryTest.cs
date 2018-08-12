@@ -20,12 +20,8 @@ namespace BasicMessageStore.Test.Models.Users
     private (UserRepository repo, Mock<IPasswordHasher<User>> hasher) SetupTarget(params User[] existingUsers)
     {      
       var clientProvider = new Mock<IClientProvider>();
-      
-      // Mocking entity framework seems like a bad idea. Use the provided in memory database for tests
-      var options = new DbContextOptionsBuilder<MessageStoreContext>()
-        .UseInMemoryDatabase(Guid.NewGuid().ToString())
-        .Options;
-      var context = new MessageStoreContext(options, clientProvider.Object);
+
+      var context = GetContext(clientProvider.Object);
       
       foreach (var user in existingUsers)
         context.Users.Add(user);
@@ -33,7 +29,7 @@ namespace BasicMessageStore.Test.Models.Users
         context.SaveChanges();
       
       var hasher = new Mock<IPasswordHasher<User>>();
-      var repo = new UserRepository(GetContext(clientProvider.Object), hasher.Object);
+      var repo = new UserRepository(context, hasher.Object);
       return (repo, hasher);            
     }
     
