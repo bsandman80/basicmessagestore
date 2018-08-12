@@ -44,6 +44,8 @@ namespace BasicMessageStore.Models.Users
                 throw new MessageStoreException(ErrorCodes.ResourceNotFound, "User could not be found");
             Context.Users.Remove(user);
             await Context.SaveChangesAsync();
+            
+            //TODO: This should probably delete all messages created by user as well
         }
 
         public Task UpdateAsync(User model)
