@@ -1,10 +1,13 @@
 # Basic Message Store REST API
-<!-- TOC depthFrom:1 depthTo:2 withLinks:1 updateOnSave:1 orderedList:0 -->
+<!-- TOC depthFrom:1 depthTo:3 withLinks:1 updateOnSave:1 orderedList:0 -->
 
 - [Basic Message Store REST API](#basic-message-store-rest-api)
 	- [Build instructions](#build-instructions)
 	- [Authorization](#authorization)
 	- [API overview](#api-overview)
+		- [Tokens](#tokens)
+		- [Users](#users)
+		- [Messages](#messages)
 	
 
 <!-- /TOC -->
