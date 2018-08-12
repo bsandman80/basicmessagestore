@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -78,6 +79,7 @@ namespace BasicMessageStore
             // Client is request specific
             services.AddScoped<IClientProvider, ClientProvider>();
             services.AddSingleton<ITokenProvider, JWTTokenProvider>();
+            services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 
             ConfigureAuthentication(services);
         }

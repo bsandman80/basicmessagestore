@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using BasicMessageStore.Models.Messages;
@@ -47,7 +48,9 @@ namespace BasicMessageStore.Models
         /// </summary>
         private void Audit()
         {
-            foreach (var auditableModel in ChangeTracker.Entries<IAuditable>())
+            var auditable = ChangeTracker.Entries<IAuditable>().ToList();
+            
+            foreach (var auditableModel in auditable)
             {
                 if (auditableModel.State == EntityState.Added)
                 {

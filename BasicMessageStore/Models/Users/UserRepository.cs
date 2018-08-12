@@ -10,11 +10,13 @@ namespace BasicMessageStore.Models.Users
 {
     public class UserRepository : IUserRepository
     {
+        private IPasswordHasher<User> _passwordHasher;
         public MessageStoreContext Context { get; set; }
         
-        public UserRepository(MessageStoreContext context)
+        public UserRepository(MessageStoreContext context, IPasswordHasher<User> passwordHasher)
         {   
             Context = context;
+            _passwordHasher = passwordHasher;
         }
 
         public async Task<User> AddAsync(User model)
@@ -28,8 +30,7 @@ namespace BasicMessageStore.Models.Users
             if (await UsernameExists(model.Username))
                 throw new MessageStoreException(ErrorCodes.Unique, "Username already exists");
             
-            var passwordHasher = new PasswordHasher<User>();
-            model.Password = passwordHasher.HashPassword(model, model.Password);            
+            model.Password = _passwordHasher.HashPassword(model, model.Password);            
             Context.Users.Add(model);
             await Context.SaveChangesAsync();
             return model;
@@ -57,7 +58,7 @@ namespace BasicMessageStore.Models.Users
 
         public async Task<User> GetByIdAsync(int id)
         {
-            var user = await Context.Users.FindAsync(id);
+            var user = await Context.Users.Where(b => b.Id == id).SingleOrDefaultAsync();
             if (user == null)
                 throw new MessageStoreException(ErrorCodes.ResourceNotFound, "User could not be found");
             return user;
@@ -68,8 +69,7 @@ namespace BasicMessageStore.Models.Users
             var user = await GetByUsername(username);
             if (user == null || String.IsNullOrWhiteSpace(password))
                 return false;
-            var passwordHasher = new PasswordHasher<User>();
-            var result = passwordHasher.VerifyHashedPassword(user, user.Password, password);
+            var result = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
             return result == PasswordVerificationResult.Success;
         }
 
